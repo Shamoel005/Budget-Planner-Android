@@ -1,98 +1,99 @@
-# My Planner
+# My Budget
 
-An offline-first productivity suite I built for my own daily use: a native **Android app** and a native **macOS desktop-widget app** that share one data format. Plan tasks, set week/month/year goals, track habits, capture notes, and stay focused, with no accounts, no servers and no tracking.
+A personal finance app for Android that tracks income and spending, explains where your money goes, and helps you save for the things you want. Everything is stored on the device: no accounts, no ads, no tracking.
 
 > **Status:** personal project, in daily use. Not published to any app store.
 
-<!-- Add screenshots here -->
-<!--
+<!-- Add screenshots here
 <p align="center">
-  <img src="docs/screenshots/android-today.png" width="260" />
-  <img src="docs/screenshots/android-goals.png" width="260" />
-  <img src="docs/screenshots/mac-widget.png" width="260" />
+  <img src="docs/screenshots/home.png" width="230" />
+  <img src="docs/screenshots/insights.png" width="230" />
+  <img src="docs/screenshots/goals.png" width="230" />
 </p>
 -->
 
 ## Why I built it
 
-Most to-do apps are either too simple (a flat list) or too heavy (accounts, subscriptions, sync). I wanted one place for **daily tasks, deadlines, long-term targets and habits** that lives on my own devices and keeps my data private. Building it was also a way to learn native Android and macOS development end to end, from UI to storage to CI.
+Most budgeting apps either lock their best features behind a subscription or want access to your bank account. I wanted one that shows **how much I can still spend today**, how this month compares with earlier ones, and what I should change, while keeping my financial data on my own phone.
 
 ## Features
 
-| Area | What it does |
-|---|---|
-| **Today** | Daily progress, quick-add bar, overdue tasks highlighted, today's habits |
-| **Tasks** | Priority levels, details, deadlines (date picker), All / Pending / Done filters |
-| **Goals** | Week, Month and Year targets with a numeric target (e.g. "12 books"), live progress |
-| **Habits** | One-tap daily check-in, streak counter, 7-day history |
-| **Notes** | Free-form notes with pinning |
-| **Focus timer** | 15 / 25 / 45 minute sessions |
-| **Weekly review** *(Android)* | Tasks completed per day, overdue count, habit consistency, goal progress |
-| **Reminders** *(Android)* | Notification at 9:00 AM on a deadline day; rescheduled after reboot |
-| **Home-screen widget** *(Android)* | Today's top tasks at a glance |
-| **Backup / Restore** | Plain JSON file, interchangeable between the Android and Mac apps |
+**Home**
+- Monthly hero card: amount left to spend, progress bar, and a daily allowance for the days remaining
+- Income, spending and savings at a glance, with savings rate
+- Daily spending chart with the daily budget shown as a dashed line
+- Top categories with optional per-category limits
+- Upcoming bills and recent transactions
+- Month navigation, so every previous month is one tap away
 
-## Two apps, one data format
+**Activity**
+- Every transaction grouped by day, with search and Expense / Income filters
+- Add, edit and delete expenses and income, with category, note and date
 
-### Android (`/Planner-Android`)
-- **Kotlin + Jetpack Compose (Material 3)**, no third-party libraries
-- Custom design system: dark/light themes, dot-matrix digits rendered with Compose `Canvas`, dot-based progress bars
-- Local persistence in app-private storage (JSON)
-- **AlarmManager + BroadcastReceiver** for deadline notifications, plus a boot receiver to re-arm alarms
-- **AppWidgetProvider / RemoteViews** home-screen widget
-- Backup/restore through the **Storage Access Framework**
-- Adaptive launcher icon (vector, with themed-icon support)
+**Insights**
+- *Monthly:* category donut chart, comparison with the previous month, biggest expenses
+- *Yearly:* income vs spending for all 12 months, savings rate, average monthly spend, costliest month, trend detection, top categories, and a month-by-month table
+- **Written advice** generated from your data, for example: over or ahead of budget, projected overspend at the current pace, categories that jumped versus last month, low savings rate, and small purchases that add up
 
-### macOS (`/Planner-Mac`)
-- **SwiftUI + AppKit**, Swift Package Manager (no Xcode project needed)
-- Borderless, translucent panel pinned at **desktop window level**, so it behaves like a widget
-- Frosted glass (`NSVisualEffectView`), per-tab colour themes, animated progress ring
-- Menu-bar item (show/hide, keep above windows, launch at login via `SMAppService`, backup/restore)
-- Universal binary (Apple Silicon + Intel)
+**Savings goals**
+- Goals such as a trip or a new gadget, with target, amount saved and optional deadline
+- Progress ring and the monthly amount needed to finish on time
+- Add or withdraw money at any point
 
-## Engineering highlights
+**Bills & subscriptions**
+- Recurring bills with a due day each month
+- One-tap "Mark as paid" logs the expense automatically
+- Reminders the day before and on the due date, restored after a reboot
 
-- **CI/CD with GitHub Actions:** every push builds a ready-to-install APK (Android) and a universal `.app` (macOS) on GitHub's runners, so I can build both without a local toolchain.
-- **Privacy by design:** all data stays on the device. The only network-free storage format is a human-readable JSON file.
-- **Cross-platform data compatibility:** the same JSON schema is read and written by Kotlin (`org.json`) and Swift (`Codable`), with defaults for missing fields so older backups keep working.
-- **Native UI on both platforms** rather than a web wrapper.
+**Data & settings**
+- Backup and restore as a JSON file, and export every transaction as CSV
+- Light, dark or system theme, and an optional daily "log your spending" reminder
+
+## Tech
+
+- **Kotlin** and **Jetpack Compose** (Material 3), with no third-party libraries
+- **Custom charts** (bar, donut, grouped yearly bars, progress rings) drawn with Compose `Canvas`
+- **Rule-based insights engine** that turns monthly and yearly figures into plain-language advice
+- Local JSON persistence in app-private storage
+- **AlarmManager**, `BroadcastReceiver` and notifications for bill and daily reminders, plus a boot receiver to restore them
+- **Storage Access Framework** for backup, restore and CSV export
+- Indian number formatting (₹ with lakh and crore grouping)
+- Adaptive vector launcher icon
+- **GitHub Actions** builds a ready-to-install APK on every push
 
 ## Project structure
 
 ```
-Planner/                       Android app
-  app/src/main/java/.../
-    MainActivity.kt            UI, state, storage, dialogs
-    Extras.kt                  Reminders, boot receiver, home-screen widget
-  app/src/main/res/            Icon, widget layout
-  .github/workflows/build.yml  APK build
-
-PlannerDesk/                   macOS app
-  Sources/MyPlanner/App.swift  Model, desktop window, SwiftUI views
-  Info.plist
-  .github/workflows/build.yml  .app build
+app/src/main/
+  java/com/mydash/planner/
+    MainActivity.kt     Data model, storage, advice engine, theme, charts, all screens and dialogs
+    Extras.kt           Reminder scheduling, notification and boot receivers
+  res/                  Adaptive launcher icon
+  AndroidManifest.xml
+.github/workflows/build.yml   APK build
 ```
 
 ## Build it yourself
 
-**Android:** open the project in Android Studio and run, or push to GitHub and download the APK from the *Actions* tab artifacts.
+**Android Studio:** open the project and run it on a device or emulator.
 
-**macOS:** `swift build -c release`, or push to GitHub and download the `.app` from the *Actions* tab artifacts. The app is ad-hoc signed, so on first launch right-click it and choose **Open**.
+**GitHub Actions:** push to GitHub, open the **Actions** tab, and download the `planner-apk` artifact from the latest run. Allow installs from unknown sources on your phone to install it.
 
 ## What I learned
 
-- Structuring a Compose app around a single state source and persisting it safely
-- Android background work: alarms, receivers, widgets, permissions (including Android 13+ notifications)
-- Making a macOS app behave like a desktop widget (window levels, activation policy, status items)
-- Setting up reproducible builds with GitHub Actions for two platforms
+- Designing a fintech-style UI system (colour palette, cards, hero summary) in Compose
+- Building charts from scratch with `Canvas` instead of a library
+- Modelling money data across months and years, and deriving insights from it
+- Scheduling reliable background reminders on modern Android, including notification permissions
+- Automating builds with CI
 
 ## Roadmap
 
 - [ ] Optional cloud sync with sign-in
-- [ ] Reminders on macOS
-- [ ] Export weekly review as a shareable image
-- [ ] Unit tests for date and streak logic
+- [ ] Recurring income and recurring transactions
+- [ ] Unit tests for the insights engine and date logic
+- [ ] Home-screen widget showing what's left to spend
 
 ## Author
 
-Built by **[Md Shamoel Farooqui]**. [LinkedIn](https://www.linkedin.com/in/md-shamoel/) · [Email](farooquimd005@gmail.com)
+Built by **[Md Shamoel Farooqui]**. [LinkedIn](https://www.linkedin.com/in/md-shamoel/) · [Email](farooquishamoel@gmail.com)
